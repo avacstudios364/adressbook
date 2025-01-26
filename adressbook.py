@@ -3,10 +3,13 @@ from tkinter import messagebox
 from tkinter.filedialog import *
 from tkinter.ttk import *
 import os
+import json
 
 window = Tk()
 window.title('Adress book')
 window.geometry('500x500')
+# OR
+#window.minsize(500, 500)
 
 
 myAddressBook = {}
@@ -31,24 +34,73 @@ def update():
         clear_all() #clears text boxes
 
 def edit():
-    pass
+    clear_all()
+    index = book_list.curselection()
+    if index:
+        nameentry.insert(0, book_list.get(index))
+        details = myAddressBook[nameentry.get()]
+        adressentry.insert(0, details[0])
+        phoneentry.insert(0, details[1])
+        emailentry.insert(0, details[2])
+        birthdayentry.insert(0, details[3])
+    else:
+        messagebox.showinfo('error','You need to select a name')
 
 def delete():
-    pass
+    index = book_list.curselection()
+    if index:
+        del myAddressBook[book_list.get(index)]# delete from dict.
+        book_list.delete(index) # to delete from list box
+        clear_all() # to delete the textboxes
+    else:
+        messagebox.showinfo('error', 'You need to select a entry')
 
 def display(event):
-    pass
+    newWindow = Toplevel(window)
+    index = book_list.curselection()
+    content = ' '
+    if index:
+        key = book_list.get(index)
+        contact = 'NAME : '+key+'\n\n'
+        details = myAddressBook[key]
+        contact += 'ADRESS : '+details[0]+'\n'
+        contact += 'PHONE NUMBER : '+details[1]+'\n'
+        contact += 'EMAIL : '+details[2]+'\n'
+        contact += 'BIRTHDAY : '+details[3]+'\n'
+
+    # Levels for new window
+    
+    lbl = Label(newWindow)
+    lbl.grid(row = 0, grid = 0)
+    lbl.configure(text = contact)
 
 def reset():
-    pass
+    clear_all()
+    book_list.delete(0, END)
+    myAddressBook.clear()
+    bookName.configure(text = 'My adress book')
 
 def save():
-    pass
+    fout=asksaveasfile(defaultextension='.txt')
+    if fout:
+        print(myAddressBook, file = fout)
+        reset()
+    else:
+        messagebox.showinfo('warning', 'Address book not found')
 
 def open_file():
-    pass
-
-
+    global myAddressBook
+    reset()
+    fin=askopenfile(title='Open file')
+    if fin:
+        eval()
+        with open(fin.name, 'r') as file:
+            myAddressBook = json.load(file)
+        for key in myAddressBook.keys():
+            book_list.insert(END,key)
+        bookName.configure(text = os.path.basename(fin.name))
+    else:
+        messagebox.showinfo('Error', 'No adress book open')
 
 
 # design main window
@@ -89,17 +141,20 @@ phoneentry.grid(row = 5, column = 4, padx = 10)
 birthdayentry = Entry(window)
 birthdayentry.grid(row = 6, column = 4, padx = 10)
 
-add_update_btn = Button(window, text = 'Add/Update', command = None)
+add_update_btn = Button(window, text = 'Add/Update', command = update)
 add_update_btn.grid(row = 7, column = 3)
 
-delete_btn = Button(window, text = 'Delete', command = None)
+delete_btn = Button(window, text = 'Delete', command = delete)
 delete_btn.grid(row = 7, column = 2)
 
-edit_btn = Button(window, text = 'Edit', command = None)
+edit_btn = Button(window, text = 'Edit', command = edit)
 edit_btn.grid(row = 7, column = 1)
 
-open_btn = Button(window, text = 'Open', command = None)
+open_btn = Button(window, text = 'Open', command = open)
 open_btn.grid(row = 8, column = 3)
+
+save_btn = Button(window, text = 'Save', command = save)
+save_btn.grid(row = 8, column = 2)
 
 
 
